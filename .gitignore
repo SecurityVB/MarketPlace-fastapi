@@ -3,3 +3,6 @@ VENV
 migrations/versions
 migrations/script.py.mako
 .env
+__pyache__
+migrations/__pycache__/
+src/users/__pycache__/
