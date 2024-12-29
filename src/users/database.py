@@ -23,7 +23,7 @@ class User(SQLAlchemyBaseUserTableUUID, Base):
     __tablename__ = "user"
 
     id: Mapped[str] = mapped_column(String, primary_key=True, default=str(uuid.uuid4()))
-    username: Mapped[str] = mapped_column(String(length=20), nullable=False)
+    username: Mapped[str] = mapped_column(String(length=20), nullable=False, unique=True)
     hashed_password: Mapped[str] = mapped_column(String(length=1024), nullable=False)
     first_name: Mapped[str] = mapped_column(String(length=30))
     last_name: Mapped[str] = mapped_column(String(length=30))

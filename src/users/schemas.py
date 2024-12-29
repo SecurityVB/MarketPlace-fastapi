@@ -20,7 +20,7 @@ class UserRead(schemas.BaseUser[str]):
 
 
 class UserCreate(schemas.BaseUserCreate):
-    username: str
+    username: str = Field(min_length=5, max_length=20, pattern=r"^[A-Za-z0-9_]+$")
     email: EmailStr
     password: str
     is_active: Optional[bool] = True

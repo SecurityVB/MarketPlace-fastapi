@@ -30,7 +30,7 @@ user = Table(
     user_metadata,
     Column("id", String, primary_key=True, default=uuid.uuid4),
     Column("email", String(length=320), nullable=False),
-    Column("username", String(length=20), nullable=False),
+    Column("username", String(length=20), nullable=False, unique=True),
     Column("hashed_password", String, nullable=False),
     Column("first_name", String(length=30)),
     Column("last_name", String(length=30)),

@@ -6,8 +6,10 @@ from fastapi import Request
 from fastapi_users import exceptions, models, schemas
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.users.database import User, get_user_db, get_session
+from src.database.db_client import async_session_maker
+from src.users.database import User, get_user_db
 from src.users.models import user
+
 
 SECRET = "SECRET"
 
@@ -26,11 +28,13 @@ class UserManager(UUIDIDMixin, BaseUserManager[User, uuid.UUID]):
             user_create: schemas.UC,
             safe: bool = False,
             request: Optional[Request] = None,
-            session: AsyncSession = Depends(get_session)
     ) -> models.UP:
 
-        if not await session.execute(user.select().where(user.c.username == user_create.username)):
-            HTTPException(status_code=400, detail="Username is already taken")
+        async with async_session_maker() as session:
+            result = await session.execute(user.select().where(user.c.username == user_create.username))
+            user_status = result.fetchone()
+            if user_status:
+                raise HTTPException(status_code=400, detail="Username is already taken")
 
         await self.validate_password(user_create.password, user_create)
 
