@@ -2,3 +2,4 @@
 VENV
 migrations/versions
 migrations/script.py.mako
+.env
