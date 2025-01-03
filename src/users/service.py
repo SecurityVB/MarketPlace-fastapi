@@ -2,6 +2,7 @@ from fastapi import Depends, APIRouter, HTTPException
 from fastapi_users.exceptions import UserNotExists
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing_extensions import Any
+import uuid
 
 from src.users.database import get_session, get_user_db, get_role_by_id, get_company_by_id
 from src.users.schemas import UserRead
@@ -10,7 +11,7 @@ user_router = APIRouter()
 
 @user_router.get("/profile/{user_id}", name="get_user_profile")
 async def get_user_profile(
-    user_id: str,
+    user_id: uuid.UUID,
     session: AsyncSession = Depends(get_session),
     user_db=Depends(get_user_db),
 ) -> dict[str, Any]:

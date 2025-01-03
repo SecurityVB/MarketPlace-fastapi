@@ -22,14 +22,14 @@ from src.users.schemas import UserRead
 class User(SQLAlchemyBaseUserTableUUID, Base):
     __tablename__ = "user"
 
-    id: Mapped[str] = mapped_column(String, primary_key=True, default=str(uuid.uuid4()))
+    id: Mapped[UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     username: Mapped[str] = mapped_column(String(length=20), nullable=False, unique=True)
     hashed_password: Mapped[str] = mapped_column(String(length=1024), nullable=False)
     first_name: Mapped[str] = mapped_column(String(length=30))
     last_name: Mapped[str] = mapped_column(String(length=30))
     register_at: Mapped[datetime] = mapped_column(TIMESTAMP, server_default=func.now(), nullable=False)
     role_id: Mapped[int] = mapped_column(Integer, ForeignKey(role.c.id))
-    company_id: Mapped[Optional[str]] = mapped_column(String, ForeignKey(company.c.id))
+    company_id: Mapped[Optional[UUID]] = mapped_column(UUID(as_uuid=True), ForeignKey(company.c.id))
     balance: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
     email: Mapped[str] = mapped_column(String(length=320), unique=True, index=True, nullable=False)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False) # for banned
@@ -55,14 +55,14 @@ class Complaint(Base): # on seller / company
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     title: Mapped[str] = mapped_column(String(length=200), nullable=False)
     content: Mapped[str] = mapped_column(String, nullable=False)
-    user_id: Mapped[str] = mapped_column(String, ForeignKey(user.c.id), nullable=False)
+    company_id: Mapped[Optional[UUID]] = mapped_column(UUID(as_uuid=True), ForeignKey(user.c.id))
     register_at: Mapped[datetime] = mapped_column(TIMESTAMP, server_default=func.now(), nullable=False)
 
 
 class Company(Base):
     __tablename__ = "company"
 
-    id: Mapped[str] = mapped_column(String, primary_key=True, default=str(uuid.uuid4()))
+    id: Mapped[UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     name: Mapped[str] = mapped_column(String(length=50), nullable=False, unique=True)
     description: Mapped[str] = mapped_column(String, nullable=False)
     address: Mapped[str] = mapped_column(String, nullable=False)

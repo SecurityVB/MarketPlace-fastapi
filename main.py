@@ -4,10 +4,8 @@ from fastapi import FastAPI
 from fastapi import Depends, APIRouter
 from fastapi_users import FastAPIUsers
 
-from src.database.db_client import redis_client
 from src.users.auth import auth_backend
 from src.users.manager import get_user_manager
-
 from src.users.schemas import UserCreate, UserRead, UserUpdate
 from src.users.database import User
 from src.users.service import user_router

@@ -5,8 +5,8 @@ from typing import Optional
 from pydantic import EmailStr, Field
 
 
-class UserRead(schemas.BaseUser[str]):
-    id: str
+class UserRead(schemas.BaseUser[uuid.UUID]):
+    id: uuid.UUID
     email: EmailStr
     username: str
     first_name: Optional[str] = None
