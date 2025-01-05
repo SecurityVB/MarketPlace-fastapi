@@ -26,10 +26,11 @@ async def get_seller_or_owner_profile(
 
     return {
         "username": user.username,
+        "email": user.email,
         "first_name": user.first_name,
         "last_name": user.last_name,
-        "email": user.email,
         "role": role,
         "company": company,
         "is_verified": user.is_verified,
+        "register_at": user.register_at,
     }

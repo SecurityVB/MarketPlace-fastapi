@@ -90,7 +90,7 @@ async def get_user_by_username(username: str, session: AsyncSession) -> UserRead
         select(user).where(user.c.username == username)
     )
     user_data = result.fetchone()
-    print(user_data)
+
     if not user_data:
         return None
     else:
