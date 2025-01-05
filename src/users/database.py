@@ -85,6 +85,27 @@ async def get_session(session: AsyncSession = Depends(get_async_session)) -> Asy
     return session
 
 
+async def get_users_and_companies(row: str, session: AsyncSession) -> UserRead or None:
+    """
+    Algorithm for checking differences between a company name or username and the current string
+    """
+    strings_users, strings_companies = [], []
+    result = await session.execute(select(user))
+    user_data = result.fetchall()
+    result = await session.execute(select(company))
+    companies_data = result.fetchall()
+
+    for n in user_data:
+        strings_users.append(n[2])
+    for n in companies_data:
+        strings_companies.append(n[1])
+
+    return {
+        "users": strings_users,
+        "companies": strings_companies,
+    }
+
+
 async def get_user_by_username(username: str, session: AsyncSession) -> UserRead or None:
     result = await session.execute(
         select(user).where(user.c.username == username)
