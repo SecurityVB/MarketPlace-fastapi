@@ -85,24 +85,71 @@ async def get_session(session: AsyncSession = Depends(get_async_session)) -> Asy
     return session
 
 
-async def get_users_and_companies(row: str, session: AsyncSession) -> UserRead or None:
-    """
-    Algorithm for checking differences between a company name or username and the current string
-    """
-    strings_users, strings_companies = [], []
+async def get_users_and_companies(current_row: str, session: AsyncSession) -> UserRead or None:
+    users, companies = {}, {}
+    users_weights, companies_weights = {}, {}
+
     result = await session.execute(select(user))
     user_data = result.fetchall()
     result = await session.execute(select(company))
     companies_data = result.fetchall()
 
+
     for n in user_data:
-        strings_users.append(n[2])
+        users[n[2]] = n
     for n in companies_data:
-        strings_companies.append(n[1])
+        companies[n[1]] = n
+
+    """
+    Algorithm for checking differences between a company name or username and the current string
+    """
+    # for user
+    for u in users:
+        key = u[2]
+        row = key.lower().replace(' ', '')
+        table = [[0 for _ in range(len(row) + 1)] for _ in range(len(current_row) + 1)]
+
+        for s in range(1, len(current_row) + 1):
+            for c in range(1, len(row) + 1):
+                if row[c - 1] == current_row[s - 1]:
+                    table[s][c] = table[s - 1][c - 1] + 1
+                else:
+                    table[s][c] = max(table[s - 1][c], table[s][c - 1])
+
+        for current_row in table:
+            print(current_row)
+
+        users_weights[row] = table[-1][-1]
+
+    # for company
+    for c in companies:
+        key = c[1]
+        row = key.lower().replace(' ', '')
+        table = [[0 for _ in range(len(row) + 1)] for _ in range(len(current_row) + 1)]
+
+        for s in range(1, len(current_row) + 1):
+            for c in range(1, len(row) + 1):
+                if row[c - 1] == current_row[s - 1]:
+                    table[s][c] = table[s - 1][c - 1] + 1
+                else:
+                    table[s][c] = max(table[s - 1][c], table[s][c - 1])
+
+        for current_row in table:
+            print(current_row)
+
+        companies_weights[key] = table[-1][-1]
+
+    un = round(len(users) * 0.25) # How much need return
+    sorted_users = sorted(users.keys(), key=lambda tag: users_weights[tag], reverse=True)
+    users_answer = {tag: users[tag] for tag in sorted_users[:un]}
+
+    cn = round(len(companies) * 0.25) # How much need return
+    sorted_companies = sorted(companies.keys(), key=lambda tag: companies_weights[tag], reverse=True)
+    companies_answer = {tag: companies[tag] for tag in sorted_companies[:cn]}
 
     return {
-        "users": strings_users,
-        "companies": strings_companies,
+        "users": users_answer,
+        "companies": companies_answer,
     }
 
 
