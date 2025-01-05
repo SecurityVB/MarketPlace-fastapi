@@ -27,7 +27,7 @@ class User(SQLAlchemyBaseUserTableUUID, Base):
     hashed_password: Mapped[str] = mapped_column(String(length=1024), nullable=False)
     first_name: Mapped[str] = mapped_column(String(length=30))
     last_name: Mapped[str] = mapped_column(String(length=30))
-    register_at: Mapped[datetime] = mapped_column(TIMESTAMP, server_default=func.now(), nullable=False)
+    register_at: Mapped[datetime] = mapped_column(TIMESTAMP, default=func.now(), nullable=False)
     role_id: Mapped[int] = mapped_column(Integer, ForeignKey(role.c.id))
     company_id: Mapped[Optional[UUID]] = mapped_column(UUID(as_uuid=True), ForeignKey(company.c.id))
     balance: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
@@ -56,7 +56,7 @@ class Complaint(Base): # on seller / company
     title: Mapped[str] = mapped_column(String(length=200), nullable=False)
     content: Mapped[str] = mapped_column(String, nullable=False)
     company_id: Mapped[Optional[UUID]] = mapped_column(UUID(as_uuid=True), ForeignKey(user.c.id))
-    register_at: Mapped[datetime] = mapped_column(TIMESTAMP, server_default=func.now(), nullable=False)
+    register_at: Mapped[datetime] = mapped_column(TIMESTAMP, default=func.now(), nullable=False)
 
 
 class Company(Base):
@@ -68,7 +68,7 @@ class Company(Base):
     address: Mapped[str] = mapped_column(String, nullable=False)
     contacts: Mapped[json] = mapped_column(JSON, nullable=False)
     is_active: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
-    register_at: Mapped[datetime] = mapped_column(TIMESTAMP, server_default=func.now(), nullable=False)
+    register_at: Mapped[datetime] = mapped_column(TIMESTAMP, default=func.now(), nullable=False)
 
 # class Product(Base):
 #     is_active: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False) # False - on showing
@@ -83,6 +83,29 @@ async def get_user_db(session: AsyncSession = Depends(get_async_session)):
 
 async def get_session(session: AsyncSession = Depends(get_async_session)) -> AsyncSession:
     return session
+
+
+async def get_user_by_username(username: str, session: AsyncSession) -> UserRead or None:
+    result = await session.execute(
+        select(user).where(user.c.username == username)
+    )
+    user_data = result.fetchone()
+    print(user_data)
+    if not user_data:
+        return None
+    else:
+        return UserRead(
+            id=user_data[0],
+            email=user_data[1],
+            username=user_data[2],
+            first_name=user_data[4],
+            last_name=user_data[5],
+            role_id=user_data[7],
+            company_id=user_data[8],
+            is_verified=user_data[11],
+            register_at=user_data[-1],
+        )
+
 
 
 async def get_role_by_id(role_id: int, session: AsyncSession) -> dict:
@@ -100,17 +123,18 @@ async def get_role_by_id(role_id: int, session: AsyncSession) -> dict:
         select(role).where(role.c.id == role_id)
     )
     role_data = result.fetchone()
+
     if not role_data:
         raise HTTPException(status_code=404, detail=f"Role with id {role_id} not found")
+    else:
+        role_dict = {"id": role_data[0], "name": role_data[1], "permissions": role_data[2]}
+        await redis_client.setex(redis_key, 86400, json.dumps(role_dict))
 
-    role_dict = {"id": role_data[0], "name": role_data[1], "permissions": role_data[2]}
-    await redis_client.setex(redis_key, 86400, json.dumps(role_dict))
-
-    return {
-        "id": role_dict['id'],
-        "name": role_dict['name'],
-        "permissions": role_dict['permissions'],
-    }
+        return {
+            "id": role_dict['id'],
+            "name": role_dict['name'],
+            "permissions": role_dict['permissions'],
+        }
 
 
 async def get_company_by_id(company_id: str, session: AsyncSession) -> dict:

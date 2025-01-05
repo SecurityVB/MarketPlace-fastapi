@@ -1,4 +1,5 @@
 import uuid
+from datetime import datetime
 
 from fastapi_users import schemas
 from typing import Optional
@@ -14,6 +15,7 @@ class UserRead(schemas.BaseUser[uuid.UUID]):
     role_id: int
     company_id: Optional[str] = None
     is_verified: Optional[bool] = False
+    register_at: datetime
 
     class Config:
         from_attributes = True
