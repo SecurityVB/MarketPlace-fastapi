@@ -9,12 +9,12 @@ from sqlalchemy import Integer, String, Boolean, ForeignKey, TIMESTAMP, func, JS
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy.dialects.postgresql import UUID
-from typing import Optional
+from typing import Optional, Any
 
 from src.users.models import role, user, company
 from src.database.db_client import Base, get_async_session, redis_client
 from src.users.schemas import UserRead
-
+from src.users.utils import similarity_check
 
 """----------------------------------------------------TABLES--------------------------------------------------------------------------"""
 
@@ -85,75 +85,16 @@ async def get_session(session: AsyncSession = Depends(get_async_session)) -> Asy
     return session
 
 
-async def get_users_and_companies(current_row: str, session: AsyncSession) -> UserRead or None:
-    users, companies = {}, {}
-    users_weights, companies_weights = {}, {}
-
+async def get_users_and_companies(current_row: str, session: AsyncSession):
     result = await session.execute(select(user))
     user_data = result.fetchall()
     result = await session.execute(select(company))
     companies_data = result.fetchall()
 
-    """
-    Algorithm for checking differences between a company name or username and the current string
-    """
-
-    # for user
-    for n in user_data:
-        users[n[2]] = n
-    for u in users:
-        key = u[2]
-        row = key.lower().replace(' ', '')
-        print(row)
-        print(current_row + "\n\n\n")
-        table = [[0 for _ in range(len(row) + 1)] for _ in range(len(current_row) + 1)]
-
-        for s in range(1, len(current_row) + 1):
-            for c in range(1, len(row) + 1):
-                if row[c - 1] == current_row[s - 1]:
-                    table[s][c] = table[s - 1][c - 1] + 1
-                else:
-                    table[s][c] = max(table[s - 1][c], table[s][c - 1])
-
-        for current_row in table:
-            print(current_row)
-
-        users_weights[key] = table[-1][-1]
-
-    un = round(len(users) * 0.25)  # How much need return
-    sorted_users = sorted(users.keys(), key=lambda tag: users_weights[tag], reverse=True)
-    users_answer = {tag: users[tag] for tag in sorted_users[:un]}
-
-    # for company
-    if companies:
-        for n in companies_data:
-            companies[n[2]] = n
-        for c in companies:
-            key = c[1]
-            row = key.lower().replace(' ', '')
-            table = [[0 for _ in range(len(row) + 1)] for _ in range(len(current_row) + 1)]
-
-            for s in range(1, len(current_row) + 1):
-                for c in range(1, len(row) + 1):
-                    if row[c - 1] == current_row[s - 1]:
-                        table[s][c] = table[s - 1][c - 1] + 1
-                    else:
-                        table[s][c] = max(table[s - 1][c], table[s][c - 1])
-
-            for current_row in table:
-                print(current_row)
-
-            companies_weights[key] = table[-1][-1]
-
-        cn = round(len(companies) * 0.25) # How much need return
-        sorted_companies = sorted(companies.keys(), key=lambda tag: companies_weights[tag], reverse=True)
-        companies_answer = {tag: companies[tag] for tag in sorted_companies[:cn]}
-    else:
-        companies_answer = None
-
+    result = similarity_check(current_row, user_data, companies_data)
     return {
-        "users": users_answer,
-        "companies": companies_answer,
+        "users": result[0],
+        "companies": result[1],
     }
 
 

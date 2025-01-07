@@ -42,7 +42,7 @@ async def get_seller_or_owner_profile(
 async def get_seller_or_owner_profile(
     row: str,
     session: AsyncSession = Depends(get_session),
-) -> dict[str, Any]:
+):
     try:
         answer = await get_users_and_companies(row, session)
 
