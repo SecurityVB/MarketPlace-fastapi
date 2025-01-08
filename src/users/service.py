@@ -46,7 +46,8 @@ async def get_seller_or_owner_profile(
     try:
         answer = await get_users_and_companies(row, session)
 
-    except:
+    except Exception as error:
+        print(error)
         raise HTTPException(status_code=404, detail="Nothing not found")
 
     return answer

@@ -1,5 +1,5 @@
 from math import ceil
-
+from collections import deque
 
 def similarity_check(current_row: str, user_data, companies_data) -> list[dict | None]:
     """
@@ -7,11 +7,12 @@ def similarity_check(current_row: str, user_data, companies_data) -> list[dict |
     """
     users, companies = {}, {}
     users_weights, companies_weights = {}, {}
+    users_answer, companies_answer = {}, {}
+    users_sorted, companies_sorted = deque(), deque()
 
     for n in user_data:
         users[n[2]] = n
-    for u in users:
-        key = u
+    for key in users:
         row = key.lower().replace(' ', '')
         table = [[0 for _ in range(len(row) + 1)] for _ in range(len(current_row) + 1)]
 
@@ -23,15 +24,22 @@ def similarity_check(current_row: str, user_data, companies_data) -> list[dict |
                     table[s][c] = max(table[s - 1][c], table[s][c - 1])
         users_weights[key] = table[-1][-1]
 
-    un = ceil(len(users) * 0.25)  # How much need return
-    sorted_users = sorted(users.keys(), key=lambda tag: users_weights[tag], reverse=True)
-    users_answer = {tag: users[tag] for tag in sorted_users[:un]}
+    un = len(users) if len(users) <= 10 else ceil(len(users) * 0.25) # How much need return
+    for i in users_weights:
+        if users_sorted:
+            if users_weights[users_sorted[0]] < users_weights[i]:
+                users_sorted.appendleft(i)
+            else:
+                users_sorted.append(i)
+        else:
+            users_sorted.append(i)
+    for key in list(users_sorted)[0:un]:
+        users_answer[key] = users[key]
 
-    if companies:
+    if companies_data:
         for n in companies_data:
             companies[n[2]] = n
-        for c in companies:
-            key = c[1]
+        for key in companies:
             row = key.lower().replace(' ', '')
             table = [[0 for _ in range(len(row) + 1)] for _ in range(len(current_row) + 1)]
 
@@ -43,9 +51,18 @@ def similarity_check(current_row: str, user_data, companies_data) -> list[dict |
                         table[s][c] = max(table[s - 1][c], table[s][c - 1])
             companies_weights[key] = table[-1][-1]
 
-        cn = ceil(len(companies) * 0.25) # How much need return
-        sorted_companies = sorted(companies.keys(), key=lambda tag: companies_weights[tag], reverse=True)
-        companies_answer = {tag: companies[tag] for tag in sorted_companies[:cn]}
+        cn = len(companies) if len(companies) <= 10 else ceil(len(companies) * 0.25) # How much need return
+        for i in companies_weights:
+            if companies_sorted:
+                if companies_weights[companies_sorted[0]] < companies_weights[i]:
+                    companies_sorted.appendleft(i)
+                else:
+                    companies_sorted.append(i)
+            else:
+                companies_sorted.append(i)
+        for key in list(companies_sorted)[:cn]:
+            companies_answer[key] = companies[key]
     else:
         companies_answer = None
+    print([users_answer, companies_answer])
     return [users_answer, companies_answer]
