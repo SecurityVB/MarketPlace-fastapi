@@ -1,4 +1,5 @@
 import uuid
+
 from typing_extensions import Any
 from fastapi import Depends, APIRouter, HTTPException
 from fastapi_users.exceptions import UserNotExists
@@ -17,37 +18,34 @@ async def get_seller_or_owner_profile(
     session: AsyncSession = Depends(get_session),
 ) -> dict[str, Any]:
     try:
-        user = await get_user_by_username(username, session)
-        if not user:
+        user_db = await get_user_by_username(username, session)
+        if not user_db:
             raise HTTPException(status_code=404, detail="Seller or Owner not found")
-        role = await get_role_by_id(user.role_id, session)
-        company = await get_company_by_id(user.company_id, session) if role['name'] == "owner_by_company" else None
+        role_db = await get_role_by_id(user_db.role_id, session)
+        company_db = await get_company_by_id(user_db.company_id, session) if role_db['name'] == "owner_by_company" else None
 
     except UserNotExists:
         raise HTTPException(status_code=404, detail="User not found")
 
     return {
-        "username": user.username,
-        "email": user.email,
-        "first_name": user.first_name,
-        "last_name": user.last_name,
-        "role": role,
-        "company": company,
-        "is_verified": user.is_verified,
-        "register_at": user.register_at,
+        "username": user_db.username,
+        "email": user_db.email,
+        "first_name": user_db.first_name,
+        "last_name": user_db.last_name,
+        "role": role_db,
+        "company": company_db,
+        "is_verified": user_db.is_verified,
+        "register_at": user_db.register_at,
     }
 
 
-@user_router.get("/profiles/search/{row}", name="search_profiles")
-async def get_seller_or_owner_profile(
-    row: str,
+@user_router.get("/profiles/search/{current_row}", name="search_profiles")
+async def search_profiles(
+    current_row: str,
     session: AsyncSession = Depends(get_session),
-):
-    try:
-        answer = await get_users_and_companies(row, session)
-
-    except Exception as error:
-        print(error)
+) -> dict[str, Any]:
+    answer = await get_users_and_companies(current_row, session)
+    if not answer:
         raise HTTPException(status_code=404, detail="Nothing not found")
 
     return answer

@@ -2,8 +2,8 @@ import uuid
 from datetime import datetime
 
 from fastapi_users import schemas
-from typing import Optional
-from pydantic import EmailStr, Field
+from typing import Any, Dict, Optional
+from pydantic import EmailStr, Field, BaseModel
 
 
 class UserRead(schemas.BaseUser[uuid.UUID]):
@@ -38,3 +38,27 @@ class UserUpdate(schemas.BaseUserUpdate):
     company_id: str
     first_name: str = Field(max_length=30, pattern=r"^[A-Za-z]+$")
     last_name: str = Field(max_length=30, pattern=r"^[A-Za-z]+$")
+
+"""----------------------------------COMPANY---------------------------------------"""
+
+class CompanyCreate(BaseModel):
+    id: uuid.UUID
+    email: EmailStr
+    name: str = Field(min_length=5, max_length=50, pattern=r"^[A-Za-z0-9_]+$")
+    description: str
+    address: str
+    contacts: Dict[str, Any]
+    register_at: datetime
+
+
+class CompanyRead(BaseModel):
+    id: uuid.UUID
+    email: EmailStr
+    name: str
+    description: str
+    address: str
+    contacts: Dict[str, Any]
+    register_at: datetime
+
+    class Config:
+        from_attributes = True

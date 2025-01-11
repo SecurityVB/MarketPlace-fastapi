@@ -1,16 +1,19 @@
 from math import ceil
 from collections import deque
 
-def similarity_check(current_row: str, user_data, companies_data) -> list[dict | None]:
+from src.users.schemas import UserRead, CompanyRead
+
+
+def similarity_check(current_row: str, users_data, companies_data) -> dict[str, dict | None]:
     """
     Algorithm for checking differences between a company name or username and the current string
     """
-    users, companies = {}, {}
-    users_weights, companies_weights = {}, {}
-    users_answer, companies_answer = {}, {}
+    users, companies = dict(), dict()
+    users_weights, companies_weights = dict(), dict()
+    users_answer, companies_answer = dict(), dict()
     users_sorted, companies_sorted = deque(), deque()
 
-    for n in user_data:
+    for n in users_data:
         users[n[2]] = n
     for key in users:
         row = key.lower().replace(' ', '')
@@ -34,7 +37,17 @@ def similarity_check(current_row: str, user_data, companies_data) -> list[dict |
         else:
             users_sorted.append(i)
     for key in list(users_sorted)[0:un]:
-        users_answer[key] = users[key]
+        users_answer[key] = UserRead(
+            id=users[key][0],
+            email=users[key][1],
+            username=users[key][2],
+            first_name=users[key][4],
+            last_name=users[key][5],
+            role_id=users[key][7],
+            company_id=users[key][8],
+            is_verified=users[key][11],
+            register_at=users[key][-1],
+        )
 
     if companies_data:
         for n in companies_data:
@@ -61,8 +74,19 @@ def similarity_check(current_row: str, user_data, companies_data) -> list[dict |
             else:
                 companies_sorted.append(i)
         for key in list(companies_sorted)[:cn]:
-            companies_answer[key] = companies[key]
+            companies_answer[key] = CompanyRead(
+            id = companies[key][0],
+            email = companies[key][7],
+            name = companies[key][1],
+            description = companies[key][2],
+            address = companies[key][3],
+            contacts = companies[key][4],
+            register_at = companies[key][6],
+        )
     else:
         companies_answer = None
-    print([users_answer, companies_answer])
-    return [users_answer, companies_answer]
+
+    return {
+        "users": users_answer,
+        "companies": companies_answer,
+    }

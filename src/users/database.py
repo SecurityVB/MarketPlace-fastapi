@@ -13,7 +13,7 @@ from typing import Optional, Any
 
 from src.users.models import role, user, company
 from src.database.db_client import Base, get_async_session, redis_client
-from src.users.schemas import UserRead
+from src.users.schemas import UserRead, CompanyRead
 from src.users.utils import similarity_check
 
 """----------------------------------------------------TABLES--------------------------------------------------------------------------"""
@@ -63,6 +63,7 @@ class Company(Base):
     __tablename__ = "company"
 
     id: Mapped[UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    email: Mapped[str] = mapped_column(String(length=320), unique=True, index=True, nullable=False)
     name: Mapped[str] = mapped_column(String(length=50), nullable=False, unique=True)
     description: Mapped[str] = mapped_column(String, nullable=False)
     address: Mapped[str] = mapped_column(String, nullable=False)
@@ -85,17 +86,12 @@ async def get_session(session: AsyncSession = Depends(get_async_session)) -> Asy
     return session
 
 
-async def get_users_and_companies(current_row: str, session: AsyncSession):
+async def get_users_and_companies(current_row: str, session: AsyncSession) -> dict:
     result = await session.execute(select(user))
-    user_data = result.fetchall()
+    users_data = result.fetchall()
     result = await session.execute(select(company))
     companies_data = result.fetchall()
-
-    result = similarity_check(current_row, user_data, companies_data)
-    return {
-        "users": result[0],
-        "companies": result[1],
-    }
+    return similarity_check(current_row, users_data, companies_data)
 
 
 async def get_user_by_username(username: str, session: AsyncSession) -> UserRead or None:
@@ -150,19 +146,20 @@ async def get_role_by_id(role_id: int, session: AsyncSession) -> dict:
         }
 
 
-async def get_company_by_id(company_id: str, session: AsyncSession) -> dict:
+async def get_company_by_id(company_id: str, session: AsyncSession) -> CompanyRead:
     redis_key = f"company:{company_id}"
     cached_company = await redis_client.get(redis_key)
     if cached_company:
         company_data = json.loads(cached_company)
-        return {
-            "id": company_data["id"],
-            "name": company_data["name"],
-            "description": company_data["description"],
-            "address": company_data["address"],
-            "contacts": company_data["contacts"],
-            "register_at": company_data["register_at"],
-        }
+        return CompanyRead(
+            id=company_data["id"],
+            email=company_data["email"],
+            name=company_data["name"],
+            description=company_data["description"],
+            address=company_data["address"],
+            contacts=company_data["contacts"],
+            register_at=company_data["register_at"],
+        )
 
     result = await session.execute(
         select(role).where(role.c.id == company_id)
@@ -171,7 +168,7 @@ async def get_company_by_id(company_id: str, session: AsyncSession) -> dict:
     if not company_data:
         raise HTTPException(status_code=404, detail=f"Role with id {company_id} not found")
 
-    company_dict = {
+    answer = {
         "id": company_data[0],
         "name": company_data[1],
         "description": company_data[2],
@@ -180,6 +177,14 @@ async def get_company_by_id(company_id: str, session: AsyncSession) -> dict:
         "register_at": company_data[6],
     }
 
-    await redis_client.setex(redis_key, 86400, json.dumps(company_dict))
+    await redis_client.setex(redis_key, 86400, json.dumps(answer))
 
-    return company_dict
+    return CompanyRead(
+            id = company_data[0],
+            email = company_data[7],
+            name = company_data[1],
+            description = company_data[2],
+            address = company_data[3],
+            contacts = company_data[4],
+            register_at = company_data[6],
+        )

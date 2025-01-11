@@ -18,6 +18,7 @@ company = Table(
     "company",
     user_metadata,
     Column("id", UUID(as_uuid=True), primary_key=True, default=uuid.uuid4),
+    Column("email", String(length=320), unique=True, index=True, nullable=False),
     Column("name", String(length=50), nullable=False, unique=True),
     Column("address", String, nullable=False),
     Column("contacts", JSON, nullable=False),
