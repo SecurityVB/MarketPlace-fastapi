@@ -1,14 +1,14 @@
 import uuid
 
+from sqlalchemy.exc import IntegrityError
 from typing_extensions import Any
 from fastapi import Depends, APIRouter, HTTPException
 from fastapi_users.exceptions import UserNotExists
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.users.schemas import UserRead
+from src.users.schemas import UserRead, CompanyCreate
 from src.users.database import get_session, get_user_db, get_role_by_id, \
-    get_company_by_id, get_user_by_username, get_users_and_companies
-
+    get_company_by_id, get_user_by_username, get_users_and_companies, Company
 
 user_router = APIRouter()
 
@@ -49,3 +49,27 @@ async def search_profiles(
         raise HTTPException(status_code=404, detail="Nothing not found")
 
     return answer
+
+
+@user_router.post("/companies/", name="search_profiles")
+async def search_profiles(
+        company_data: CompanyCreate,
+        session: AsyncSession = Depends(get_session)
+):
+    new_company = Company(
+        email=company_data.email,
+        name=company_data.name,
+        description=company_data.description,
+        address=company_data.address,
+        contacts=company_data.contacts,
+    )
+
+    session.add(new_company)
+
+    try:
+        await session.commit()
+        await session.refresh(new_company)
+        return new_company
+    except IntegrityError:
+        await session.rollback()
+        raise HTTPException(status_code=400, detail="Company with this email already exists.")

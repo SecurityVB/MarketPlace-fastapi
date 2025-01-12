@@ -42,13 +42,11 @@ class UserUpdate(schemas.BaseUserUpdate):
 """----------------------------------COMPANY---------------------------------------"""
 
 class CompanyCreate(BaseModel):
-    id: uuid.UUID
     email: EmailStr
     name: str = Field(min_length=5, max_length=50, pattern=r"^[A-Za-z0-9_]+$")
     description: str
     address: str
     contacts: Dict[str, Any]
-    register_at: datetime
 
 
 class CompanyRead(BaseModel):

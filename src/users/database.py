@@ -171,20 +171,20 @@ async def get_company_by_id(company_id: str, session: AsyncSession) -> CompanyRe
     answer = {
         "id": company_data[0],
         "name": company_data[1],
-        "description": company_data[2],
-        "address": company_data[3],
-        "contacts": company_data[4],
-        "register_at": company_data[6],
+        "description": company_data[6],
+        "address": company_data[2],
+        "contacts": company_data[3],
+        "register_at": company_data[5],
     }
 
     await redis_client.setex(redis_key, 86400, json.dumps(answer))
 
     return CompanyRead(
             id = company_data[0],
-            email = company_data[7],
+            email = company_data[6],
             name = company_data[1],
-            description = company_data[2],
-            address = company_data[3],
-            contacts = company_data[4],
-            register_at = company_data[6],
+            description = company_data[7],
+            address = company_data[2],
+            contacts = company_data[3],
+            register_at = company_data[5],
         )
