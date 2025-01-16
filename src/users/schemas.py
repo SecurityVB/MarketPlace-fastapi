@@ -13,7 +13,7 @@ class UserRead(schemas.BaseUser[uuid.UUID]):
     first_name: Optional[str] = None
     last_name: Optional[str] = None
     role_id: int
-    company_id: Optional[str] = None
+    company_id: Optional[uuid.UUID] = None
     is_verified: Optional[bool] = False
     register_at: datetime
 
@@ -35,7 +35,7 @@ class UserUpdate(schemas.BaseUserUpdate):
     email: EmailStr
     password: str
     role_id: int
-    company_id: str
+    company_id: uuid.UUID
     first_name: str = Field(max_length=30, pattern=r"^[A-Za-z]+$")
     last_name: str = Field(max_length=30, pattern=r"^[A-Za-z]+$")
 
@@ -58,5 +58,10 @@ class CompanyRead(BaseModel):
     contacts: Dict[str, Any]
     register_at: datetime
 
-    class Config:
-        from_attributes = True
+
+class CompanyUpdate(BaseModel):
+    email: EmailStr
+    name: str = Field(min_length=5, max_length=50, pattern=r"^[A-Za-z0-9_]+$")
+    description: str
+    address: str
+    contacts: Dict[str, Any]

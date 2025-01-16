@@ -134,7 +134,7 @@ async def get_role_by_id(role_id: int, session: AsyncSession) -> dict:
     role_data = result.fetchone()
 
     if not role_data:
-        raise HTTPException(status_code=404, detail=f"Role with id {role_id} not found")
+        raise HTTPException(status_code=404, detail=f"Role with id {role_id} not found.")
     else:
         role_dict = {"id": role_data[0], "name": role_data[1], "permissions": role_data[2]}
         await redis_client.setex(redis_key, 86400, json.dumps(role_dict))
@@ -166,7 +166,7 @@ async def get_company_by_id(company_id: str, session: AsyncSession) -> CompanyRe
     )
     company_data = result.fetchone()
     if not company_data:
-        raise HTTPException(status_code=404, detail=f"Role with id {company_id} not found")
+        raise HTTPException(status_code=404, detail=f"Role with id {company_id} not found.")
 
     answer = {
         "id": company_data[0],

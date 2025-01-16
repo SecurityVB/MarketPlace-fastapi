@@ -4,7 +4,6 @@ from fastapi_users import BaseUserManager, UUIDIDMixin
 from typing import Optional
 from fastapi import Request
 from fastapi_users import exceptions, models, schemas
-from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.database.db_client import async_session_maker
 from src.users.database import User, get_user_db
