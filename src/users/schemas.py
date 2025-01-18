@@ -1,4 +1,5 @@
 import uuid
+from contextlib import nullcontext
 from datetime import datetime
 
 from fastapi_users import schemas
@@ -60,8 +61,8 @@ class CompanyRead(BaseModel):
 
 
 class CompanyUpdate(BaseModel):
-    email: EmailStr
-    name: str = Field(min_length=5, max_length=50, pattern=r"^[A-Za-z0-9_]+$")
-    description: str
-    address: str
-    contacts: Dict[str, Any]
+    email: Optional[EmailStr] = None
+    name: Optional[str] = Field(default=None, min_length=5, max_length=50, pattern=r"^[A-Za-z0-9_]+$")
+    description: Optional[str] = None
+    address: Optional[str] = None
+    contacts: Optional[Dict[str, Any]] = None

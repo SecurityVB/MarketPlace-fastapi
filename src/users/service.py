@@ -1,6 +1,6 @@
 import uuid
 
-from sqlalchemy import select
+from sqlalchemy import select, update
 from sqlalchemy.exc import IntegrityError
 from typing_extensions import Any
 from fastapi import Depends, APIRouter, HTTPException
@@ -9,7 +9,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.users.config import current_user
 from src.users.models import company
-from src.users.schemas import UserRead, CompanyCreate, CompanyUpdate
+from src.users.schemas import UserRead, CompanyCreate, CompanyUpdate, CompanyRead
 from src.users.database import get_session, get_user_db, get_role_by_id, \
     get_company_by_id, get_user_by_username, get_users_and_companies, \
     Company, User
@@ -57,7 +57,7 @@ async def search_profiles(
     return answer
 
 
-@user_router.post("/companies", name="create_company")
+@user_router.post("/companies/create", name="create_company")
 async def create_company(
     company_data: CompanyCreate,
     user_db: User = Depends(current_user),
@@ -89,34 +89,56 @@ async def create_company(
         raise HTTPException(status_code=400, detail="you already own the company.")
 
 
-# @user_router.post("/companies", name="update_company")
-# async def update_company(
-#     company_id: int,
-#     company_data: CompanyUpdate,
-#     user_db: User = Depends(current_user),
-#     session: AsyncSession = Depends(get_session)
-# ):
-#     query = await session.execute(
-#         select(company).where(company.c.id == user_db.company_id)
-#     )
-#     company_db = query.fetchone()
-#     if not company_db:
-#         HTTPException(status_code=404, detail="You don't own the company")
-#
-#     result = await session.execute(
-#         select(Company).where(Company.id == company_id)
-#     )
-#
-#     if not company:
-#         raise HTTPException(status_code=404, detail="Company not found")
-#
-#     for key, value in company_data.dict(exclude_unset=True).items():
-#         setattr(company, key, value)
-#
-#     try:
-#         await session.commit()
-#         await session.refresh(company)
-#         return company
-#     except Exception as e:
-#         await session.rollback()
-#         raise HTTPException(status_code=400, detail=str(e))
+@user_router.post("/companies/update", name="update_company")
+async def update_company(
+    company_data: CompanyUpdate,
+    user_db: User = Depends(current_user),
+    session: AsyncSession = Depends(get_session)
+) -> CompanyRead:
+    query = await session.execute(
+        select(company).where(company.c.id == user_db.company_id)
+    )
+    company_db = query.fetchone()
+    if not company_db:
+        HTTPException(status_code=404, detail="You don't own the company")
+
+    try:
+        answer = await session.execute(
+            update(company)
+            .where(company.c.id == user_db.company_id)
+            .values(
+                email = company_data.email,
+                name = company_data.name,
+                description = company_data.description,
+                address = company_data.address,
+                contacts = company_data.contacts,
+            )
+            .returning(
+                company.c.id,
+                company.c.email,
+                company.c.name,
+                company.c.description,
+                company.c.address,
+                company.c.contacts,
+                company.c.register_at,
+            )
+        )
+
+        result = await session.execute(answer)
+        await session.commit()
+
+        company_answer = result.fetchone()
+        if not company_answer:
+            raise HTTPException(status_code=500, detail="Failed to create message")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+    return CompanyRead(
+        id=company_data[0],
+        email=company_data[6],
+        name=company_data[1],
+        description=company_data[7],
+        address=company_data[2],
+        contacts=company_data[3],
+        register_at=company_data[5],
+    )
