@@ -103,7 +103,7 @@ async def update_company(
         HTTPException(status_code=404, detail="You don't own the company")
 
     try:
-        answer = await session.execute(
+        answer = (
             update(company)
             .where(company.c.id == user_db.company_id)
             .values(
@@ -134,11 +134,11 @@ async def update_company(
         raise HTTPException(status_code=500, detail=str(e))
 
     return CompanyRead(
-        id=company_data[0],
-        email=company_data[6],
-        name=company_data[1],
-        description=company_data[7],
-        address=company_data[2],
-        contacts=company_data[3],
-        register_at=company_data[5],
+        id=company_answer[0],
+        email=company_answer[1],
+        name=company_answer[2],
+        description=company_answer[3],
+        address=company_answer[4],
+        contacts=company_answer[5],
+        register_at=company_answer[6],
     )

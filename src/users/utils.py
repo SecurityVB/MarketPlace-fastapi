@@ -76,12 +76,12 @@ def similarity_check(current_row: str, users_data, companies_data) -> dict[str, 
         for key in list(companies_sorted)[:cn]:
             companies_answer[key] = CompanyRead(
             id = companies[key][0],
-            email = companies[key][7],
-            name = companies[key][1],
-            description = companies[key][2],
-            address = companies[key][3],
-            contacts = companies[key][4],
-            register_at = companies[key][6],
+            email = companies[key][1],
+            name = companies[key][2],
+            description = companies[key][3],
+            address = companies[key][4],
+            contacts = companies[key][5],
+            register_at = companies[key][7],
         )
     else:
         companies_answer = None
