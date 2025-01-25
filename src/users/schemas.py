@@ -32,13 +32,13 @@ class UserCreate(schemas.BaseUserCreate):
 
 
 class UserUpdate(schemas.BaseUserUpdate):
-    username: str = Field(min_length=5, max_length=20, pattern=r"^[A-Za-z0-9_]+$")
-    email: EmailStr
-    password: str
-    role_id: int
-    company_id: uuid.UUID
-    first_name: str = Field(max_length=30, pattern=r"^[A-Za-z]+$")
-    last_name: str = Field(max_length=30, pattern=r"^[A-Za-z]+$")
+    username: Optional[str] = Field(default=None, min_length=5, max_length=20, pattern=r"^[A-Za-z0-9_]+$")
+    email: Optional[EmailStr] = None
+    password: Optional[str] = None
+    role_id: Optional[int] = None
+    company_id: Optional[uuid.UUID]
+    first_name: Optional[str] = Field(default=None, max_length=30, pattern=r"^[A-Za-z]+$")
+    last_name: Optional[str] = Field(default=None, max_length=30, pattern=r"^[A-Za-z]+$")
 
 """----------------------------------COMPANY---------------------------------------"""
 
