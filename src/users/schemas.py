@@ -36,7 +36,7 @@ class UserUpdate(schemas.BaseUserUpdate):
     email: Optional[EmailStr] = None
     password: Optional[str] = None
     role_id: Optional[int] = None
-    company_id: Optional[uuid.UUID]
+    company_id: Optional[uuid.UUID] = None
     first_name: Optional[str] = Field(default=None, max_length=30, pattern=r"^[A-Za-z]+$")
     last_name: Optional[str] = Field(default=None, max_length=30, pattern=r"^[A-Za-z]+$")
 
