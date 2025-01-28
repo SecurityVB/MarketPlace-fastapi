@@ -6,6 +6,7 @@ from sqlalchemy.dialects.postgresql import UUID
 
 user_metadata = MetaData()
 
+
 role = Table(
     "role",
     user_metadata,
@@ -14,18 +15,6 @@ role = Table(
     Column("permissions", JSON),
 )
 
-company = Table(
-    "company",
-    user_metadata,
-    Column("id", UUID(as_uuid=True), primary_key=True, default=uuid.uuid4),
-    Column("email", String(length=320), unique=True, index=True, nullable=False),
-    Column("name", String(length=50), nullable=False, unique=True),
-    Column("description", String, nullable=False),
-    Column("address", String, nullable=False),
-    Column("contacts", JSON, nullable=False),
-    Column("is_active", Boolean, nullable=False, default=True),
-    Column("register_at", TIMESTAMP, server_default=func.now(), nullable=False),
-)
 
 user = Table(
     "user",
@@ -52,5 +41,6 @@ complaint = Table(
     Column("title", String(length=200), nullable=False),
     Column("content",String, nullable=False),
     Column("user_id", UUID(as_uuid=True), ForeignKey(user.c.id)),
+    Column("is_active", Boolean, default=True, nullable=False),
     Column("register_at", TIMESTAMP, server_default=func.now(), nullable=False),
 )

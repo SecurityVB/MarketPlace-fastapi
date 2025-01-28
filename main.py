@@ -3,13 +3,15 @@ from fastapi import FastAPI
 from src.users.auth import auth_backend
 from src.users.schemas import UserCreate, UserRead, UserUpdate
 from src.users.service import user_router
-from src.users.config import fastapi_users
+from src.companies.service import company_router
+from src.database.config import fastapi_users
 
 '''----------------------------------------CONFIG-------------------------------------------------'''
 
 app = FastAPI()
 
 app.include_router(user_router, prefix="/users", tags=["users"])
+app.include_router(company_router, prefix="/companies", tags=["companies"])
 
 
 app.include_router(
