@@ -39,3 +39,12 @@ class UserUpdate(schemas.BaseUserUpdate):
     company_id: Optional[uuid.UUID] = None
     first_name: Optional[str] = Field(default=None, max_length=30, pattern=r"^[A-Za-z]+$")
     last_name: Optional[str] = Field(default=None, max_length=30, pattern=r"^[A-Za-z]+$")
+
+
+
+class ComplaintCreate(BaseModel):
+    id: uuid.UUID
+    title: str
+    content: str
+    company_id: uuid.UUID
+    register_at: datetime

@@ -3,8 +3,9 @@ from fastapi import Depends, APIRouter, HTTPException
 from fastapi_users.exceptions import UserNotExists
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.users.database import get_session, get_role_by_id, \
-    get_company_by_id, get_user_by_username, get_users_and_companies
+from src.users.database import get_session, get_role_by_id, get_user_by_username, get_users_and_companies, get_user_db
+from src.companies.database import get_company_by_id
+
 
 user_router = APIRouter()
 
@@ -37,13 +38,26 @@ async def get_seller_or_owner_profile(
     }
 
 
-@user_router.get("/profiles/search/{current_row}", name="search_profiles")
+@user_router.get("/profile/search/{current_row}", name="search_profiles")
 async def search_profiles(
     current_row: str,
     session: AsyncSession = Depends(get_session),
 ) -> dict[str, Any]:
     answer = await get_users_and_companies(current_row, session)
     if not answer:
+        raise HTTPException(status_code=404, detail="Nothing not found")
+
+    return answer
+
+
+@user_router.get("/complaint/{at_whom}", name="complaint")
+async def complaint(
+    at_whom: str,
+    user_db=Depends(get_user_db),
+    session: AsyncSession = Depends(get_session),
+) -> dict[str, Any]:
+    to_user = await user_db.get(at_whom)
+    if not to_user:
         raise HTTPException(status_code=404, detail="Nothing not found")
 
     return answer

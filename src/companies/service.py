@@ -9,6 +9,7 @@ from src.companies.schemas import CompanyCreate, CompanyUpdate, CompanyRead
 from src.users.database import get_session, User
 from src.companies.database import Company
 
+
 company_router = APIRouter()
 
 @company_router.post("/companies/create", name="create_company")
