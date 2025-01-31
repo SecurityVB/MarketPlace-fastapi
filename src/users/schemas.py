@@ -42,9 +42,18 @@ class UserUpdate(schemas.BaseUserUpdate):
 
 
 
+class ComplaintRead(BaseModel):
+    title: str
+    content: str
+    sender_id: uuid.UUID
+    company_id: uuid.UUID
+    register_at: datetime
+
+
 class ComplaintCreate(BaseModel):
     id: uuid.UUID
     title: str
     content: str
-    company_id: uuid.UUID
+    sender: uuid.UUID
+    addressee: uuid.UUID
     register_at: datetime

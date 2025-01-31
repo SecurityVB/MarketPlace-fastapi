@@ -3,9 +3,11 @@ from fastapi import Depends, APIRouter, HTTPException
 from fastapi_users.exceptions import UserNotExists
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.users.database import get_session, get_role_by_id, get_user_by_username, get_users_and_companies, get_user_db
+from src.database.config import current_user
+from src.users.database import get_session, get_role_by_id, get_user_by_username, get_users_and_companies, get_user_db, \
+    User
 from src.companies.database import get_company_by_id
-
+from src.users.schemas import ComplaintCreate, ComplaintRead
 
 user_router = APIRouter()
 
@@ -50,14 +52,30 @@ async def search_profiles(
     return answer
 
 
-@user_router.get("/complaint/{at_whom}", name="complaint")
+@user_router.post("/complaint", name="complaint")
 async def complaint(
-    at_whom: str,
+    complaint_data: ComplaintCreate,
     user_db=Depends(get_user_db),
+    from_user: User = Depends(current_user),
     session: AsyncSession = Depends(get_session),
-) -> dict[str, Any]:
-    to_user = await user_db.get(at_whom)
-    if not to_user:
+) -> ComplaintRead:
+    addressee = await user_db.get(complaint_data.company_id)
+    if not addressee:
         raise HTTPException(status_code=404, detail="Nothing not found")
 
-    return answer
+    new_complaint = ComplaintCreate(
+        title=complaint_data.title,
+        content=complaint_data.content,
+        sender=complaint_data.sender,
+        addressee=complaint_data.addressee,
+    )
+
+    session.add(new_complaint)
+
+    try:
+        await session.commit()
+        await session.refresh(new_complaint)
+    except:
+        raise HTTPException(status_code=400, detail="Error")
+
+    return new_complaint

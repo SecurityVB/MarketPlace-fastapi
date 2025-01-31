@@ -55,7 +55,8 @@ class Complaint(Base): # on seller / company
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     title: Mapped[str] = mapped_column(String(length=200), nullable=False)
     content: Mapped[str] = mapped_column(String, nullable=False)
-    company_id: Mapped[Optional[UUID]] = mapped_column(UUID(as_uuid=True), ForeignKey(user.c.id))
+    sender: Mapped[UUID] = mapped_column(UUID(as_uuid=True), ForeignKey(user.c.id))
+    addressee: Mapped[UUID] = mapped_column(UUID(as_uuid=True), ForeignKey(user.c.id))
     register_at: Mapped[datetime] = mapped_column(TIMESTAMP, default=func.now(), nullable=False)
 
 # class Product(Base):

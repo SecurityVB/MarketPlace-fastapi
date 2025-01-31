@@ -1,6 +1,7 @@
 import uuid
 
 from sqlalchemy import Table, Column, MetaData, Integer, String, TIMESTAMP, ForeignKey, JSON, Boolean, func
+from src.companies.models import company
 from sqlalchemy.dialects.postgresql import UUID
 
 

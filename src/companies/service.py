@@ -86,7 +86,7 @@ async def update_company(
         if not company_answer:
             raise HTTPException(status_code=500, detail="Failed to create message")
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail="Failed to create message")
 
     return CompanyRead(
         id=company_answer[0],
